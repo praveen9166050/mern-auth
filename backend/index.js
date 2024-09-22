@@ -7,6 +7,9 @@ import CustomError from "./utils/CustomError.js";
 dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 5000;
+
+app.use(express.json());
 
 app.get('/', (req, res) => {
   res.status(200).json({
@@ -27,7 +30,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-const port = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI)
 .then(() => {
   app.listen(port, () => {
