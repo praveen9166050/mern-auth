@@ -2,7 +2,8 @@ import User from "../models/User.js";
 import CustomError from "../utils/CustomError.js";
 import bcryptjs from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/generateTokenAndSetCookie.js";
-import { sendVerificationMail, sendWelcomeMail } from "../utils/emails.js";
+import { sendResetPasswordMail, sendVerificationMail, sendWelcomeMail } from "../utils/emails.js";
+import crypto from "node:crypto";
 
 export const signup = async (req, res, next) => {
   try {
@@ -100,6 +101,31 @@ export const logout = async (req, res, next) => {
       success: true,
       message: "Logout successful"
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const {email} = req.body;
+    if (!email) {
+      throw new CustomError(400, "Email is required");
+    }
+    const user = await User.findOne({email});
+    if (!user) {
+      throw new CustomError(404, "User with this email does not exist");
+    }
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000;
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpiresAt = resetTokenExpiresAt;
+    await user.save();
+    await sendResetPasswordMail(email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+    res.status(200).json({
+      success: true,
+      message: "Reset password mail sent successfully"
+    })
   } catch (error) {
     next(error);
   }
