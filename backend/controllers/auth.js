@@ -66,9 +66,27 @@ export const verifyEmail = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
+    const {email, password} = req.body;
+    if (!email || !password) {
+      throw new CustomError(400, "Both email and password are required");
+    }
+    const user = await User.findOne({email});
+    if (!user) {
+      throw new CustomError(401, "Invalid credentials");
+    }
+    const matched = await bcryptjs.compare(password, user.password);
+    if (!matched) {
+      throw new CustomError(401, "Invalid credentials");
+    }
+    generateTokenAndSetCookie(res, user._id);
+    user.lastLogin = Date.now();
+    const loggedInUser = await user.save();
+    const userDoc = loggedInUser._doc;
+    delete userDoc.password;
     res.status(200).json({
       success: true,
-      message: "Login successful"
+      message: "Login successful",
+      user: userDoc
     });
   } catch (error) {
     next(error);
