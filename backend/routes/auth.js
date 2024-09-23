@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, logout, signup } from "../controllers/auth.js";
+import { login, logout, signup, verifyEmail } from "../controllers/auth.js";
 
 const router = Router();
 
@@ -11,5 +11,8 @@ router.route('/login')
 
 router.route('/logout')
 .post(logout);
+
+router.route('/verify-email')
+.post(verifyEmail);
 
 export default router;

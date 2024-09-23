@@ -2,7 +2,7 @@ import User from "../models/User.js";
 import CustomError from "../utils/CustomError.js";
 import bcryptjs from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/generateTokenAndSetCookie.js";
-import { sendVerificationMail } from "../utils/emails.js";
+import { sendVerificationMail, sendWelcomeMail } from "../utils/emails.js";
 
 export const signup = async (req, res, next) => {
   try {
@@ -27,11 +27,38 @@ export const signup = async (req, res, next) => {
     await sendVerificationMail(email, verificationToken);
     const userDoc = user._doc;
     delete userDoc.password;
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Signup successful",
       user: userDoc
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const verifyEmail = async (req, res, next) => {
+  try {
+    const {code} = req.body;
+    const user = await User.findOne({
+      verificationToken: code,
+      verificationTokenExpiresAt: {$gt: Date.now()}
+    });
+    if (!user) {
+      throw new CustomError(400, "Invalid or expired verification code");
+    }
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiresAt = undefined;
+    await user.save();
+    await sendWelcomeMail(user.email, user.name);
+    const userDoc = user._doc;
+    delete userDoc.password;
+    res.status(200).json({
+      success: true,
+      message: "Email verification successful",
+      user: userDoc
+    })
   } catch (error) {
     next(error);
   }
