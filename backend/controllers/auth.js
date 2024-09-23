@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import CustomError from "../utils/CustomError.js";
 import bcryptjs from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/generateTokenAndSetCookie.js";
+import { sendVerificationMail } from "../utils/emails.js";
 
 export const signup = async (req, res, next) => {
   try {
@@ -23,6 +24,7 @@ export const signup = async (req, res, next) => {
       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000
     });
     generateTokenAndSetCookie(res, user._id);
+    await sendVerificationMail(email, verificationToken);
     const userDoc = user._doc;
     delete userDoc.password;
     res.status(200).json({
