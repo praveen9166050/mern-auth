@@ -2,7 +2,7 @@ import User from "../models/User.js";
 import CustomError from "../utils/CustomError.js";
 import bcryptjs from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/generateTokenAndSetCookie.js";
-import { sendResetPasswordMail, sendVerificationMail, sendWelcomeMail } from "../utils/emails.js";
+import { sendPasswordResetSuccessMail, sendResetPasswordMail, sendVerificationMail, sendWelcomeMail } from "../utils/emails.js";
 import crypto from "node:crypto";
 
 export const signup = async (req, res, next) => {
@@ -126,6 +126,32 @@ export const forgotPassword = async (req, res, next) => {
       success: true,
       message: "Reset password mail sent successfully"
     })
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const {token} = req.params;
+    const {password} = req.body;
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpiresAt: {$gt: Date.now()}
+    });
+    if (!user) {
+      throw new CustomError(400, "Invalied or expired reset token");
+    }
+    const hashedPassword = await bcryptjs.hash(password, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiresAt = undefined;
+    await user.save();
+    await sendPasswordResetSuccessMail(user.email);
+    res.status(200).json({
+      success: true,
+      message: "Password reset successful"
+    });
   } catch (error) {
     next(error);
   }

@@ -1,5 +1,5 @@
 import { mailtrapClient, sender } from "../configs/mailtrap.js";
-import { passwordResetRequestTemplate, verificationEmailTemplate } from "./emailTemlplates.js";
+import { passwordResetRequestTemplate, passwordResetSuccessTemplate, verificationEmailTemplate } from "./emailTemlplates.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -40,4 +40,16 @@ export const sendResetPasswordMail = async (email, resetUrl) => {
     category: "Password Reset"
   });
   console.log("Reset password email sent successfully", response);
+}
+
+export const sendPasswordResetSuccessMail = async (email) => {
+  const recipient = [{email: process.env.RECIPIENT_EMAIL || email}];
+  const response = await mailtrapClient.send({
+    from: sender,
+    to: recipient,
+    subject: "Password Reset Success",
+    html: passwordResetSuccessTemplate(),
+    category: "Password Reset Success"
+  });
+  console.log("Password reset success email sent successfully", response);
 }
