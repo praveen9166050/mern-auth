@@ -1,15 +1,22 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, Mail } from "lucide-react";
+import { Loader, Lock, Mail } from "lucide-react";
 import Input from "../components/Input";
 import { Link } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const {login, isLoading, error} = useAuthStore();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+  const handleLogin = async (e) => {
+    try {
+      e.preventDefault();
+      await login(email, password);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (
@@ -51,6 +58,7 @@ function LoginPage() {
               Forgot password?
             </Link>
           </div>
+          {error && <p className="text-red-500 font-semibold mt-2">{error}</p>}
           <motion.button
             className="
               mt-5 w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 
@@ -62,7 +70,7 @@ function LoginPage() {
             whileTap={{scale: 0.98}}
             type="submit"
           >
-            Log In
+            {isLoading ? <Loader size={24} className="animate-spin mx-auto" /> : "Log In"}
           </motion.button>
         </form>
       </div>
