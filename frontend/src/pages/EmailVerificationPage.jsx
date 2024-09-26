@@ -37,7 +37,7 @@ function EmailVerificationPage() {
     try {
       e.preventDefault();
       const verificationCode = code.join("");
-      console.log(`Verification code submitted: ${verificationCode}`);
+      // console.log(`Verification code submitted: ${verificationCode}`);
       await verifyEmail(verificationCode);
       navigate('/');
       toast.success("Email verified successfully");
