@@ -8,6 +8,7 @@ import { useAuthStore } from "./store/authStore";
 import { useEffect } from "react";
 import DashboardPage from "./pages/DashboardPage";
 import LoadingSpinner from "./components/LoadingSpinner";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
 function RedirectAuthenticatedUser({children}) {
   const {isAuthenticated, user} = useAuthStore();
@@ -29,7 +30,7 @@ function ProtectedRoute({children}) {
 }
 
 function App() {
-  const {isCheckingAuth, checkAuth, isAuthenticated, user} = useAuthStore();
+  const {isCheckingAuth, checkAuth} = useAuthStore();
 
   useEffect(() => {
     checkAuth();
@@ -75,6 +76,14 @@ function App() {
           } 
         />
         <Route path="/verify-email" element={<EmailVerificationPage />} />
+        <Route 
+          path="/forgot-password" 
+          element={
+            <RedirectAuthenticatedUser>
+              <ForgotPasswordPage />
+            </RedirectAuthenticatedUser>
+          } 
+        />
       </Routes>
       <Toaster />
     </div>
